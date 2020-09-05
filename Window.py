@@ -3,11 +3,9 @@ from PIL import ImageTk, Image
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 
-import numpy as np
-
 root = Tk()
 root.title("FLS Threshold Calculator")
-root.geometry("800x600")
+root.geometry("800x800")
 
 frame = LabelFrame(root, padx=5, pady=5)
 frame.grid(padx=10, pady=10)
@@ -20,15 +18,13 @@ graph_active.grid(row=0, column=0, padx=20, pady=20)
 def graph_background_create():
     global graph_active
     if fls_active == 1:
-        graph_75x100 = Figure(figsize=(5, 4), dpi=100)
-        t = np.arange(0, 3, .02)
-        graph_75x100.add_subplot(111).plot(t, 2 * np.sin(2 * np.pi * t))
+        graph_75x100 = Figure(figsize=(6, 5), dpi=100)
+        graph_75x100.add_subplot(111).plot([0, 45, 100, 100], [75, 75, 30, 0], "-k")
         graph_active = FigureCanvasTkAgg(graph_75x100, master=frame)
         graph_active.draw()
     else:
-        graph_56x75 = Figure(figsize=(5, 4), dpi=100)
-        t = np.arange(0, 3, .01)
-        graph_56x75.add_subplot(111).plot(t, 2 * np.sin(3 * np.pi * t))
+        graph_56x75 = Figure(figsize=(6, 5), dpi=100)
+        graph_56x75.add_subplot(111).plot([0, 33, 75, 75], [56, 56, 22, 0], "-k")
 
         graph_active = FigureCanvasTkAgg(graph_56x75, master=frame)
         graph_active.draw()
