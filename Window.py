@@ -9,12 +9,57 @@ root.geometry("800x800")
 frame = LabelFrame(root, padx=5, pady=5)
 frame.grid(row=0, column=0, padx=10, pady=10)
 
-entry_frame = LabelFrame(root, padx=5, pady=5)
-entry_frame.grid(row=1, column=0, padx=10, pady=10, sticky=W)
-
 fls_active = 2
 graph_active = Label(frame)
 graph_active.grid(row=0, column=0, padx=20, pady=20)
+
+
+def input_box():
+    sv = StringVar
+
+    def val_int(input_str, char_name):
+        if char_name == "1":
+            if not input_str.isdigit():
+                return False
+        return True
+
+    def save_info():
+        input_info = [reg_num.get(),
+                      flight_h.get(),
+                      flight_c.get(),
+                      flight_h_daily.get(),
+                      flight_c_daily.get()]
+        Label(root, text=input_info).grid(row=4, column=0)
+
+    entry_frame = LabelFrame(root, padx=5, pady=5)
+    entry_frame.grid(row=1, column=0, padx=10, pady=10, sticky=W)
+
+    Label(entry_frame, text="Registration\nNumber").grid(row=0, column=0)
+    reg_num = Entry(entry_frame, width=10)
+    reg_num.grid(row=1, column=0)
+
+    Label(entry_frame, text="Flight Hours\n ").grid(row=0, column=1)
+    flight_h = Entry(entry_frame, validate="key", width=10)
+    flight_h.configure(validatecommand=(flight_h.register(val_int), '%P', '%d'))
+    flight_h.grid(row=1, column=1)
+
+    Label(entry_frame, text="Flight Cycles\n ").grid(row=0, column=2)
+    flight_c = Entry(entry_frame, validate="key", width=10)
+    flight_c.configure(validatecommand=(flight_c.register(val_int), '%P', '%d'))
+    flight_c.grid(row=1, column=2)
+
+    Label(entry_frame, text="Flight Hours\nDaily").grid(row=0, column=3)
+    flight_h_daily = Entry(entry_frame, validate="key", width=10)
+    flight_h_daily.configure(validatecommand=(flight_h_daily.register(val_int), '%P', '%d'))
+    flight_h_daily.grid(row=1, column=3)
+
+    Label(entry_frame, text="Flight Cycles\nDaily").grid(row=0, column=4)
+    flight_c_daily = Entry(entry_frame, validate="key", width=10)
+    flight_c_daily.configure(validatecommand=(flight_c_daily.register(val_int), '%P', '%d'))
+    flight_c_daily.grid(row=1, column=4)
+
+    save_btn = Button(entry_frame, text="Save", command=save_info, width=12)
+    save_btn.grid(row=1, column=5)
 
 
 def graph_background_create():
@@ -57,29 +102,12 @@ def open_data_win():
 
 graph_background_create()
 
+input_box()
+
 graph_switch_btn = Button(frame, text="Change Graph", width=12, command=graph_switch)
 graph_switch_btn.grid(row=1, column=0)
 
-ac_label = Label(entry_frame, text="Registration\nNumber").grid(row=0, column=0)
-ac_entry = Entry(entry_frame, width=10).grid(row=1, column=0)
-
-fh_label = Label(entry_frame, text="Flight Hours\n ").grid(row=0, column=1)
-fh_entry = Entry(entry_frame, width=10).grid(row=1, column=1)
-
-fc_label = Label(entry_frame, text="Flight Cycles\n ").grid(row=0, column=2)
-fc_entry = Entry(entry_frame, width=10).grid(row=1, column=2)
-
-fh_daily_label = Label(entry_frame, text="Flight Hours\nDaily").grid(row=0, column=3)
-fh_daily_entry = Entry(entry_frame, width=10).grid(row=1, column=3)
-
-fc_daily_label = Label(entry_frame, text="Flight Cycles\nDaily").grid(row=0, column=4)
-fc_daily_entry = Entry(entry_frame, width=10).grid(row=1, column=4)
-
-save_btn = Button(entry_frame, text="Save", command=None, width=12)
-save_btn.grid(row=1, column=5)
-
 data_win_op_btn = Button(root, text="Data table", width=12, command=open_data_win)
 data_win_op_btn.grid(row=3, column=0, padx=10, pady=10, sticky=W)
-
 
 root.mainloop()
