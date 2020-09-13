@@ -13,6 +13,8 @@ fls_active = 2
 graph_active = Label(frame)
 graph_active.grid(row=0, column=0, padx=20, pady=20)
 
+input_label = Label()
+
 
 def input_box():
     reg_n_len = StringVar()
@@ -31,13 +33,42 @@ def input_box():
                 return False
         return True
 
+    def data_check(button):
+        data_status = ""
+        global input_label
+        input_label.grid_forget()
+        if flight_h.get() == "" or \
+                flight_h_daily.get() == "" or \
+                flight_c_daily.get() == "":
+            data_status = "Please,\n fill all fields"
+            check = False
+        else:
+            if reg_num.get() == "" and button == "save":
+                data_status = "Please,\n fill all fields"
+                check = False
+            else:
+                if button == "save":
+                    data_status = "Saved"
+                check = True
+        input_label = Label(entry_frame, text=data_status, fg="red")
+        input_label.grid(row=0, column=5)
+        return check
+
     def save_info():
-        input_info = [reg_num.get(),
-                      flight_h.get(),
-                      flight_c.get(),
-                      flight_h_daily.get(),
-                      flight_c_daily.get()]
-        Label(root, text=input_info).grid(row=4, column=0)
+        if data_check("save"):
+            input_info = [reg_num.get(),
+                          flight_h.get(),
+                          flight_c.get(),
+                          flight_h_daily.get(),
+                          flight_c_daily.get()]
+
+    def draw_graph():
+        if data_check("draw"):
+            input_info = [reg_num.get(),
+                          flight_h.get(),
+                          flight_c.get(),
+                          flight_h_daily.get(),
+                          flight_c_daily.get()]
 
     entry_frame = LabelFrame(root, padx=5, pady=5)
     entry_frame.grid(row=1, column=0, padx=10, pady=10, sticky=W)
@@ -73,6 +104,9 @@ def input_box():
 
     save_btn = Button(entry_frame, text="Save", command=save_info, width=12)
     save_btn.grid(row=1, column=5)
+
+    draw_btn = Button(entry_frame, text="Draw", command=draw_graph, width=12)
+    draw_btn.grid(row=1, column=6)
 
 
 def graph_background_create():
