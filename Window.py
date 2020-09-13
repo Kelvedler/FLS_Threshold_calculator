@@ -15,7 +15,15 @@ graph_active.grid(row=0, column=0, padx=20, pady=20)
 
 
 def input_box():
-    sv = StringVar
+    reg_n_len = StringVar()
+    fl_h_len = StringVar()
+    fl_c_len = StringVar()
+    fl_h_d_len = StringVar()
+    fl_c_d_len = StringVar()
+
+    def entry_limit(sv):
+        c = sv.get()[0:9]
+        sv.set(c)
 
     def val_int(input_str, char_name):
         if char_name == "1":
@@ -35,26 +43,31 @@ def input_box():
     entry_frame.grid(row=1, column=0, padx=10, pady=10, sticky=W)
 
     Label(entry_frame, text="Registration\nNumber").grid(row=0, column=0)
-    reg_num = Entry(entry_frame, width=10)
+    reg_num = Entry(entry_frame, width=10, textvariable=reg_n_len)
+    reg_n_len.trace("w", lambda *args: entry_limit(reg_n_len))
     reg_num.grid(row=1, column=0)
 
     Label(entry_frame, text="Flight Hours\n ").grid(row=0, column=1)
-    flight_h = Entry(entry_frame, validate="key", width=10)
+    flight_h = Entry(entry_frame, validate="key", width=10, textvariable=fl_h_len)
+    fl_h_len.trace("w", lambda *args: entry_limit(fl_h_len))
     flight_h.configure(validatecommand=(flight_h.register(val_int), '%P', '%d'))
     flight_h.grid(row=1, column=1)
 
     Label(entry_frame, text="Flight Cycles\n ").grid(row=0, column=2)
-    flight_c = Entry(entry_frame, validate="key", width=10)
+    flight_c = Entry(entry_frame, validate="key", width=10, textvariable=fl_c_len)
+    fl_c_len.trace("w", lambda *args: entry_limit(fl_c_len))
     flight_c.configure(validatecommand=(flight_c.register(val_int), '%P', '%d'))
     flight_c.grid(row=1, column=2)
 
     Label(entry_frame, text="Flight Hours\nDaily").grid(row=0, column=3)
-    flight_h_daily = Entry(entry_frame, validate="key", width=10)
+    flight_h_daily = Entry(entry_frame, validate="key", width=10, textvariable=fl_h_d_len)
+    fl_h_d_len.trace("w", lambda *args: entry_limit(fl_h_d_len))
     flight_h_daily.configure(validatecommand=(flight_h_daily.register(val_int), '%P', '%d'))
     flight_h_daily.grid(row=1, column=3)
 
     Label(entry_frame, text="Flight Cycles\nDaily").grid(row=0, column=4)
-    flight_c_daily = Entry(entry_frame, validate="key", width=10)
+    flight_c_daily = Entry(entry_frame, validate="key", width=10, textvariable=fl_c_d_len)
+    fl_c_d_len.trace("w", lambda *args: entry_limit(fl_c_d_len))
     flight_c_daily.configure(validatecommand=(flight_c_daily.register(val_int), '%P', '%d'))
     flight_c_daily.grid(row=1, column=4)
 
