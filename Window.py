@@ -30,7 +30,7 @@ def input_box():
 
     def val_int(input_str, char_name):
         if char_name == "1":
-            if not input_str.isdigit():
+            if not input_str.replace(".", "", 1).isdigit():
                 return False
         return True
 
@@ -171,15 +171,15 @@ def graph_background_create():
 
         graph_active = FigureCanvasTkAgg(graph_56x75, master=frame)
         graph_active.draw()
-    graph_active.get_tk_widget().grid(row=0, column=0, padx=20, pady=20)
+    graph_active.get_tk_widget().grid(row=0, column=0, padx=20, pady=20, columnspan=4)
     display_threshold(fl_h_int, fl_c_int)
 
 
 def display_threshold(fh, fc):
     fh = str(round(fh, 2))
     fc = str(round(fc, 2))
-    threshold = Label(frame, text=fh + " FH " + fc + " FC")
-    threshold.grid(row=1, column=1)
+    threshold = Label(frame, text=fh + " FH " + fc + " FC", width=18)
+    threshold.grid(row=1, column=3)
 
 
 def graph_switch():
@@ -204,7 +204,7 @@ graph_background_create()
 input_box()
 
 graph_switch_btn = Button(frame, text="Change Graph", width=12, command=graph_switch)
-graph_switch_btn.grid(row=1, column=0)
+graph_switch_btn.grid(row=1, column=2)
 
 data_win_op_btn = Button(root, text="Data table", width=12, command=open_data_win)
 data_win_op_btn.grid(row=3, column=0, padx=10, pady=10, sticky=W)
