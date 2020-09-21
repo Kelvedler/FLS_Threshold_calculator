@@ -1,6 +1,7 @@
 from tkinter import *
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+import sqlite3
 
 root = Tk()
 root.title("FLS Threshold Calculator")
@@ -16,6 +17,20 @@ graph_active.grid(row=0, column=0, padx=20, pady=20)
 
 input_label = Label()
 
+# db_conn = sqlite3.connect("AC data")
+# db_cursor = db_conn.cursor()
+# db_cursor.execute("""CREATE TABLE acData (
+#         reg_num text,
+#         flight_h real,
+#         flight_c real,
+#         flight_h_daily real,
+#         flight_c_daily real,
+#         f_c_th_75x100 real,
+#         f_c_th_56x75 real
+#     )""")
+# db_conn.commit()
+# db_conn.close()
+
 
 def input_box():
     reg_n_len = StringVar()
@@ -25,7 +40,7 @@ def input_box():
     fl_c_d_len = StringVar()
 
     def entry_limit(sv):
-        c = sv.get()[0:9]
+        c = sv.get()[0:7]
         sv.set(c)
 
     def val_int(input_str, char_name):
@@ -57,10 +72,27 @@ def input_box():
 
     def save_info():
         if data_check("save"):
-            input_info = [flight_h.get(),
-                          flight_c.get(),
-                          flight_h_daily.get(),
-                          flight_c_daily.get()]
+            ac_reg = str(reg_num.get())
+            global input_info
+            input_info = [float(flight_h.get()),
+                          float(flight_c.get()),
+                          float(flight_h_daily.get()),
+                          float(flight_c_daily.get())]
+            f_c_th_75x100 = intersection_point("75x100")[1]
+            f_c_th_56x75 = intersection_point("56x75")[1]
+            db_conn = sqlite3.connect("AC data")
+            db_cursor = db_conn.cursor()
+            db_cursor.execute(f"""INSERT INTO acData VALUES (
+                            '{ac_reg}',
+                            '{input_info[0]}',
+                            '{input_info[1]}',
+                            '{input_info[2]}',
+                            '{input_info[3]}',
+                            '{f_c_th_75x100}',
+                            '{f_c_th_56x75}'
+                )""")
+            db_conn.commit()
+            db_conn.close()
 
     def draw_graph():
         if data_check("draw"):
@@ -110,7 +142,7 @@ def input_box():
     draw_btn.grid(row=1, column=6)
 
 
-def intersection_point():
+def intersection_point(graph):
     fl_h, fl_c, fl_h_d, fl_c_d = input_info
     floating_line = ((fl_h, fl_c), (fl_h + fl_h_d, fl_c + fl_c_d))
 
@@ -122,13 +154,11 @@ def intersection_point():
             return a[0] * b[1] - a[1] * b[0]
 
         div = det(xdiff, ydiff)
-        if div == 0:
-            raise Exception('no intersection')
         d = (det(*line1), det(*line2))
         x = det(d, xdiff) / div
         y = det(d, ydiff) / div
         return x, y
-    if fls_active == 1:
+    if graph == "75x100":
         threshold_lines = [((0, 75000), (45000, 75000)),
                            ((45000, 75000), (100000, 30000)),
                            ((100000, 30000), (100000, 0))]
@@ -144,6 +174,7 @@ def intersection_point():
         intersection = (intersection_calc(floating_line, threshold_lines[0]))
     else:
         intersection = control_point
+    intersection = round(intersection[0], 2), round(intersection[1], 2)
     return intersection
 
 
@@ -156,7 +187,7 @@ def graph_background_create():
         plot = graph_75x100.add_subplot(111)
         plot.plot([0, 45000, 100000, 100000], [75000, 75000, 30000, 0], "-k")
         if input_info:
-            fl_h_int, fl_c_int = intersection_point()
+            fl_h_int, fl_c_int = intersection_point("75x100")
             plot.plot([input_info[0], fl_h_int], [input_info[1], fl_c_int], "-r")
 
         graph_active = FigureCanvasTkAgg(graph_75x100, master=frame)
@@ -166,7 +197,7 @@ def graph_background_create():
         plot = graph_56x75.add_subplot(111)
         plot.plot([0, 33000, 75000, 75000], [56000, 56000, 22000, 0], "-k")
         if input_info:
-            fl_h_int, fl_c_int = intersection_point()
+            fl_h_int, fl_c_int = intersection_point("56x75")
             plot.plot([input_info[0], fl_h_int], [input_info[1], fl_c_int], "-r")
 
         graph_active = FigureCanvasTkAgg(graph_56x75, master=frame)
@@ -176,8 +207,8 @@ def graph_background_create():
 
 
 def display_threshold(fh, fc):
-    fh = str(round(fh, 2))
-    fc = str(round(fc, 2))
+    fh = str(fh)
+    fc = str(fc)
     threshold = Label(frame, text=fh + " FH " + fc + " FC", width=18)
     threshold.grid(row=1, column=3)
 
@@ -195,8 +226,20 @@ def open_data_win():
     data_win = Toplevel()
     data_win.title("Data")
     data_win.geometry("600x600")
-    vert_slider = Scale(data_win)
-    vert_slider.grid(row=0, column=1)
+    db_conn = sqlite3.connect("AC data")
+    db_cursor = db_conn.cursor()
+    db_cursor.execute("SELECT * FROM acData")
+    ac_data_list = db_cursor.fetchall()
+    db_conn.commit()
+    db_conn.close()
+    ac_counter = 0
+    for aircraft in ac_data_list:
+        cell_counter = 0
+        for data_cell in aircraft:
+            cell = Label(data_win, text=data_cell)
+            cell.grid(row=ac_counter, column=cell_counter)
+            cell_counter += 1
+        ac_counter += 1
 
 
 graph_background_create()
