@@ -1,11 +1,12 @@
 from tkinter import *
+from tkinter import ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 import sqlite3
 
 root = Tk()
 root.title("FLS Threshold Calculator")
-root.geometry("800x800")
+root.geometry("1267x692")
 
 frame = LabelFrame(root, padx=5, pady=5)
 frame.grid(row=0, column=0, padx=10, pady=10)
@@ -17,19 +18,13 @@ graph_active.grid(row=0, column=0, padx=20, pady=20)
 
 input_label = Label()
 
-# db_conn = sqlite3.connect("AC data")
-# db_cursor = db_conn.cursor()
-# db_cursor.execute("""CREATE TABLE acData (
-#         reg_num text,
-#         flight_h real,
-#         flight_c real,
-#         flight_h_daily real,
-#         flight_c_daily real,
-#         f_c_th_75x100 real,
-#         f_c_th_56x75 real
-#     )""")
-# db_conn.commit()
-# db_conn.close()
+heading_text = ("Registration\nNumber",
+                "Flight Hours\n ",
+                "Flight Cycles\n ",
+                "Flight Hours\nDaily",
+                "Flight Cycles\nDaily",
+                "Figure 1\nDue Date",
+                "Figure 2\nDue Date")
 
 
 def input_box():
@@ -93,6 +88,7 @@ def input_box():
                 )""")
             db_conn.commit()
             db_conn.close()
+            ac_box()
 
     def draw_graph():
         if data_check("draw"):
@@ -104,32 +100,32 @@ def input_box():
             graph_background_create()
 
     entry_frame = LabelFrame(root, padx=5, pady=5)
-    entry_frame.grid(row=1, column=0, padx=10, pady=10, sticky=W)
+    entry_frame.grid(row=1, column=0, padx=10, pady=10, sticky=EW)
 
-    Label(entry_frame, text="Registration\nNumber").grid(row=0, column=0)
+    Label(entry_frame, text=heading_text[0]).grid(row=0, column=0)
     reg_num = Entry(entry_frame, width=10, textvariable=reg_n_len)
     reg_n_len.trace("w", lambda *args: entry_limit(reg_n_len))
     reg_num.grid(row=1, column=0)
 
-    Label(entry_frame, text="Flight Hours\n ").grid(row=0, column=1)
+    Label(entry_frame, text=heading_text[1]).grid(row=0, column=1)
     flight_h = Entry(entry_frame, validate="key", width=10, textvariable=fl_h_len)
     fl_h_len.trace("w", lambda *args: entry_limit(fl_h_len))
     flight_h.configure(validatecommand=(flight_h.register(val_int), '%P', '%d'))
     flight_h.grid(row=1, column=1)
 
-    Label(entry_frame, text="Flight Cycles\n ").grid(row=0, column=2)
+    Label(entry_frame, text=heading_text[2]).grid(row=0, column=2)
     flight_c = Entry(entry_frame, validate="key", width=10, textvariable=fl_c_len)
     fl_c_len.trace("w", lambda *args: entry_limit(fl_c_len))
     flight_c.configure(validatecommand=(flight_c.register(val_int), '%P', '%d'))
     flight_c.grid(row=1, column=2)
 
-    Label(entry_frame, text="Flight Hours\nDaily").grid(row=0, column=3)
+    Label(entry_frame, text=heading_text[3]).grid(row=0, column=3)
     flight_h_daily = Entry(entry_frame, validate="key", width=10, textvariable=fl_h_d_len)
     fl_h_d_len.trace("w", lambda *args: entry_limit(fl_h_d_len))
     flight_h_daily.configure(validatecommand=(flight_h_daily.register(val_int), '%P', '%d'))
     flight_h_daily.grid(row=1, column=3)
 
-    Label(entry_frame, text="Flight Cycles\nDaily").grid(row=0, column=4)
+    Label(entry_frame, text=heading_text[4]).grid(row=0, column=4)
     flight_c_daily = Entry(entry_frame, validate="key", width=10, textvariable=fl_c_d_len)
     fl_c_d_len.trace("w", lambda *args: entry_limit(fl_c_d_len))
     flight_c_daily.configure(validatecommand=(flight_c_daily.register(val_int), '%P', '%d'))
@@ -158,6 +154,7 @@ def intersection_point(graph):
         x = det(d, xdiff) / div
         y = det(d, ydiff) / div
         return x, y
+
     if graph == "75x100":
         threshold_lines = [((0, 75000), (45000, 75000)),
                            ((45000, 75000), (100000, 30000)),
@@ -219,37 +216,67 @@ def graph_switch():
         fls_active = 1
     else:
         fls_active = 2
+    print(root.winfo_width())  # TODO Delete This Line
+    print(root.winfo_height())  # TODO Delete This Line
     graph_background_create()
 
 
-def open_data_win():
-    data_win = Toplevel()
-    data_win.title("Data")
-    data_win.geometry("600x600")
-    db_conn = sqlite3.connect("AC data")
-    db_cursor = db_conn.cursor()
-    db_cursor.execute("SELECT * FROM acData")
-    ac_data_list = db_cursor.fetchall()
-    db_conn.commit()
-    db_conn.close()
-    ac_counter = 0
-    for aircraft in ac_data_list:
-        cell_counter = 0
-        for data_cell in aircraft:
-            cell = Label(data_win, text=data_cell)
-            cell.grid(row=ac_counter, column=cell_counter)
-            cell_counter += 1
-        ac_counter += 1
+def ac_box():
+    def ac_table():
+        db_conn = sqlite3.connect("AC data")
+        db_cursor = db_conn.cursor()
+        db_cursor.execute("""CREATE TABLE IF NOT EXISTS acData (
+            reg_num TEXT PRIMARY KEY,
+            flight_h REAL,
+            flight_c REAL,
+            flight_h_daily REAL,
+            flight_c_daily REAL,
+            f_c_th_75x100 REAL,
+            f_c_th_56x75 REAL
+        )""")
+        db_conn.commit()
+        db_conn.close()
+
+    def display_ac():
+        db_conn = sqlite3.connect("AC data")
+        db_cursor = db_conn.cursor()
+        db_cursor.execute("SELECT * FROM acData")
+        ac_data_list = db_cursor.fetchall()
+        db_conn.commit()
+        db_conn.close()
+        l_var = 1
+        for aircraft in ac_data_list:
+            reg_num, flight_h, flight_c, flight_h_daily, flight_c_daily, f_c_th_75x100, f_c_th_56x75 = aircraft
+            treev.insert("", "end", text=("L" + str(l_var)), values=(
+                reg_num, flight_h, flight_c, flight_h_daily, flight_c_daily, f_c_th_75x100, f_c_th_56x75))
+            l_var += 1
+
+    ac_table()
+    ac_box_frame = LabelFrame(root, padx=5, pady=5)
+    ac_box_frame.grid(row=0, column=1, rowspan=2, padx=10, pady=10, sticky=NS)
+    treev = ttk.Treeview(ac_box_frame, selectmode='browse', height=31)
+    treev_columns = ("1", "2", "3", "4", "5", "6", "7")
+    treev["columns"] = treev_columns
+    treev["show"] = "headings"
+    for column in treev_columns:
+        treev.column(column, width=75)
+        treev.heading(column, text=heading_text[int(column) - 1])
+    treev.grid(row=0, column=1)
+
+    ac_box_scroll = ttk.Scrollbar(ac_box_frame, orient=VERTICAL, command=treev.yview)
+    ac_box_scroll.grid(row=0, column=0, sticky=NS)
+    treev['yscrollcommand'] = ac_box_scroll.set
+
+    display_ac()
 
 
 graph_background_create()
 
 input_box()
 
+ac_box()
+
 graph_switch_btn = Button(frame, text="Change Graph", width=12, command=graph_switch)
 graph_switch_btn.grid(row=1, column=2)
-
-data_win_op_btn = Button(root, text="Data table", width=12, command=open_data_win)
-data_win_op_btn.grid(row=3, column=0, padx=10, pady=10, sticky=W)
 
 root.mainloop()
