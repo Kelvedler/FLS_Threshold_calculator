@@ -27,6 +27,22 @@ heading_text = ("Registration\nNumber",
                 "Figure 2\nDue Date")
 
 
+def ac_table():
+    db_conn = sqlite3.connect("AC data")
+    db_cursor = db_conn.cursor()
+    db_cursor.execute("""CREATE TABLE IF NOT EXISTS acData (
+        reg_num TEXT PRIMARY KEY,
+        flight_h REAL,
+        flight_c REAL,
+        flight_h_daily REAL,
+        flight_c_daily REAL,
+        f_c_th_75x100 REAL,
+        f_c_th_56x75 REAL
+    )""")
+    db_conn.commit()
+    db_conn.close()
+
+
 def input_box():
     reg_n_len = StringVar()
     fl_h_len = StringVar()
@@ -88,7 +104,7 @@ def input_box():
                 )""")
             db_conn.commit()
             db_conn.close()
-            ac_box()
+            ac_box.display_ac()
 
     def draw_graph():
         if data_check("draw"):
@@ -221,23 +237,26 @@ def graph_switch():
     graph_background_create()
 
 
-def ac_box():
-    def ac_table():
-        db_conn = sqlite3.connect("AC data")
-        db_cursor = db_conn.cursor()
-        db_cursor.execute("""CREATE TABLE IF NOT EXISTS acData (
-            reg_num TEXT PRIMARY KEY,
-            flight_h REAL,
-            flight_c REAL,
-            flight_h_daily REAL,
-            flight_c_daily REAL,
-            f_c_th_75x100 REAL,
-            f_c_th_56x75 REAL
-        )""")
-        db_conn.commit()
-        db_conn.close()
+class AcBox(LabelFrame):
 
-    def display_ac():
+    def __init__(self):
+        super().__init__(master=root, padx=5, pady=5)
+        self.grid(row=0, column=1, rowspan=2, padx=10, pady=10, sticky=NS)
+        treev = ttk.Treeview(self, selectmode='browse', height=31)
+        treev_columns = ("1", "2", "3", "4", "5", "6", "7")
+        treev["columns"] = treev_columns
+        treev["show"] = "headings"
+        for column in treev_columns:
+            treev.column(column, width=75)
+            treev.heading(column, text=heading_text[int(column) - 1])
+        treev.grid(row=0, column=1)
+
+        ac_box_scroll = ttk.Scrollbar(self, orient=VERTICAL, command=treev.yview)
+        ac_box_scroll.grid(row=0, column=0, sticky=NS)
+        treev['yscrollcommand'] = ac_box_scroll.set
+        self.treev = treev
+
+    def display_ac(self):
         db_conn = sqlite3.connect("AC data")
         db_cursor = db_conn.cursor()
         db_cursor.execute("SELECT * FROM acData")
@@ -247,34 +266,18 @@ def ac_box():
         l_var = 1
         for aircraft in ac_data_list:
             reg_num, flight_h, flight_c, flight_h_daily, flight_c_daily, f_c_th_75x100, f_c_th_56x75 = aircraft
-            treev.insert("", "end", text=("L" + str(l_var)), values=(
+            self.treev.insert("", "end", text=("L" + str(l_var)), values=(
                 reg_num, flight_h, flight_c, flight_h_daily, flight_c_daily, f_c_th_75x100, f_c_th_56x75))
             l_var += 1
-
-    ac_table()
-    ac_box_frame = LabelFrame(root, padx=5, pady=5)
-    ac_box_frame.grid(row=0, column=1, rowspan=2, padx=10, pady=10, sticky=NS)
-    treev = ttk.Treeview(ac_box_frame, selectmode='browse', height=31)
-    treev_columns = ("1", "2", "3", "4", "5", "6", "7")
-    treev["columns"] = treev_columns
-    treev["show"] = "headings"
-    for column in treev_columns:
-        treev.column(column, width=75)
-        treev.heading(column, text=heading_text[int(column) - 1])
-    treev.grid(row=0, column=1)
-
-    ac_box_scroll = ttk.Scrollbar(ac_box_frame, orient=VERTICAL, command=treev.yview)
-    ac_box_scroll.grid(row=0, column=0, sticky=NS)
-    treev['yscrollcommand'] = ac_box_scroll.set
-
-    display_ac()
 
 
 graph_background_create()
 
 input_box()
 
-ac_box()
+ac_table()
+ac_box = AcBox()
+ac_box.display_ac()
 
 graph_switch_btn = Button(frame, text="Change Graph", width=12, command=graph_switch)
 graph_switch_btn.grid(row=1, column=2)
