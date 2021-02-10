@@ -254,21 +254,30 @@ class AcBox(LabelFrame):
         ac_box_scroll = ttk.Scrollbar(self, orient=VERTICAL, command=treev.yview)
         ac_box_scroll.grid(row=0, column=0, sticky=NS)
         treev['yscrollcommand'] = ac_box_scroll.set
+        treev.bind('<<TreeviewSelect>>', self.treev_callback)
         self.treev = treev
 
     def display_ac(self):
+        for record in self.treev.get_children():
+            self.treev.delete(record)
         db_conn = sqlite3.connect("AC data")
         db_cursor = db_conn.cursor()
         db_cursor.execute("SELECT * FROM acData")
         ac_data_list = db_cursor.fetchall()
         db_conn.commit()
         db_conn.close()
-        l_var = 1
+        l_var = 0
         for aircraft in ac_data_list:
             reg_num, flight_h, flight_c, flight_h_daily, flight_c_daily, f_c_th_75x100, f_c_th_56x75 = aircraft
-            self.treev.insert("", "end", text=("L" + str(l_var)), values=(
+            self.treev.insert("", "end", iid=l_var, values=(
                 reg_num, flight_h, flight_c, flight_h_daily, flight_c_daily, f_c_th_75x100, f_c_th_56x75))
             l_var += 1
+
+    def treev_callback(self, _):
+        treev_id = self.treev.selection()[0]
+        data = self.treev.item(treev_id)["values"]
+        print(data)
+
 
 
 graph_background_create()
