@@ -43,52 +43,101 @@ def ac_table():
     db_conn.close()
 
 
-def input_box():
-    reg_n_len = StringVar()
-    fl_h_len = StringVar()
-    fl_c_len = StringVar()
-    fl_h_d_len = StringVar()
-    fl_c_d_len = StringVar()
+class InputBox(LabelFrame):
 
+    def __init__(self):
+        super().__init__(root, padx=5, pady=5)
+        self.grid(row=1, column=0, padx=10, pady=10, sticky=EW)
+
+        reg_n_len = StringVar()
+        fl_h_len = StringVar()
+        fl_c_len = StringVar()
+        fl_h_d_len = StringVar()
+        fl_c_d_len = StringVar()
+
+        Label(self, text=heading_text[0]).grid(row=0, column=0)
+        reg_num = Entry(self, width=10, textvariable=reg_n_len)
+        reg_n_len.trace("w", lambda *args: self.entry_limit(reg_n_len))
+        reg_num.grid(row=1, column=0)
+        self.reg_num = reg_num
+
+        Label(self, text=heading_text[1]).grid(row=0, column=1)
+        flight_h = Entry(self, validate="key", width=10, textvariable=fl_h_len)
+        fl_h_len.trace("w", lambda *args: self.entry_limit(fl_h_len))
+        flight_h.configure(validatecommand=(flight_h.register(self.val_int), '%P', '%d'))
+        flight_h.grid(row=1, column=1)
+        self.flight_h = flight_h
+
+        Label(self, text=heading_text[2]).grid(row=0, column=2)
+        flight_c = Entry(self, validate="key", width=10, textvariable=fl_c_len)
+        fl_c_len.trace("w", lambda *args: self.entry_limit(fl_c_len))
+        flight_c.configure(validatecommand=(flight_c.register(self.val_int), '%P', '%d'))
+        flight_c.grid(row=1, column=2)
+        self.flight_c = flight_c
+
+        Label(self, text=heading_text[3]).grid(row=0, column=3)
+        flight_h_daily = Entry(self, validate="key", width=10, textvariable=fl_h_d_len)
+        fl_h_d_len.trace("w", lambda *args: self.entry_limit(fl_h_d_len))
+        flight_h_daily.configure(validatecommand=(flight_h_daily.register(self.val_int), '%P', '%d'))
+        flight_h_daily.grid(row=1, column=3)
+        self.flight_h_daily = flight_h_daily
+
+        Label(self, text=heading_text[4]).grid(row=0, column=4)
+        flight_c_daily = Entry(self, validate="key", width=10, textvariable=fl_c_d_len)
+        fl_c_d_len.trace("w", lambda *args: self.entry_limit(fl_c_d_len))
+        flight_c_daily.configure(validatecommand=(flight_c_daily.register(self.val_int), '%P', '%d'))
+        flight_c_daily.grid(row=1, column=4)
+        self.flight_c_daily = flight_c_daily
+
+        save_btn = Button(self, text="Save", command=self.save_info, width=12)
+        save_btn.grid(row=1, column=5)
+        self.save_btn = save_btn
+
+        draw_btn = Button(self, text="Draw", command=self.draw_graph, width=12)
+        draw_btn.grid(row=1, column=6)
+        self.draw_btn = draw_btn
+
+    @staticmethod
     def entry_limit(sv):
         c = sv.get()[0:7]
         sv.set(c)
 
+    @staticmethod
     def val_int(input_str, char_name):
         if char_name == "1":
             if not input_str.replace(".", "", 1).isdigit():
                 return False
         return True
 
-    def data_check(button):
+    def data_check(self, button):
         data_status = ""
         global input_label
         input_label.grid_forget()
-        if flight_h.get() == "" or \
-                flight_h_daily.get() == "" or \
-                flight_c_daily.get() == "":
+        if self.flight_h.get() == "" or \
+                self.flight_h_daily.get() == "" or \
+                self.flight_c_daily.get() == "":
             data_status = "Please,\n fill all fields"
             check = False
         else:
-            if reg_num.get() == "" and button == "save":
+            if self.reg_num.get() == "" and button == "save":
                 data_status = "Please,\n fill all fields"
                 check = False
             else:
                 if button == "save":
                     data_status = "Saved"
                 check = True
-        input_label = Label(entry_frame, text=data_status, fg="red")
+        input_label = Label(self, text=data_status, fg="red")
         input_label.grid(row=0, column=5)
         return check
 
-    def save_info():
-        if data_check("save"):
-            ac_reg = str(reg_num.get())
+    def save_info(self):
+        if self.data_check("save"):
+            ac_reg = str(self.reg_num.get())
             global input_info
-            input_info = [float(flight_h.get()),
-                          float(flight_c.get()),
-                          float(flight_h_daily.get()),
-                          float(flight_c_daily.get())]
+            input_info = [float(self.flight_h.get()),
+                          float(self.flight_c.get()),
+                          float(self.flight_h_daily.get()),
+                          float(self.flight_c_daily.get())]
             f_c_th_75x100 = intersection_point("75x100")[1]
             f_c_th_56x75 = intersection_point("56x75")[1]
             db_conn = sqlite3.connect("AC data")
@@ -106,52 +155,27 @@ def input_box():
             db_conn.close()
             ac_box.display_ac()
 
-    def draw_graph():
-        if data_check("draw"):
+    def draw_graph(self):
+        if self.data_check("draw"):
             global input_info
-            input_info = [float(flight_h.get()),
-                          float(flight_c.get()),
-                          float(flight_h_daily.get()),
-                          float(flight_c_daily.get())]
+            input_info = [float(self.flight_h.get()),
+                          float(self.flight_c.get()),
+                          float(self.flight_h_daily.get()),
+                          float(self.flight_c_daily.get())]
             graph_background_create()
 
-    entry_frame = LabelFrame(root, padx=5, pady=5)
-    entry_frame.grid(row=1, column=0, padx=10, pady=10, sticky=EW)
+    def insert_from_treev(self, r_n_new, f_h_new, f_c_new, f_h_d_new, f_c_d_new):
+        self.reg_num.delete(0, END)
+        self.flight_h.delete(0, END)
+        self.flight_c.delete(0, END)
+        self.flight_h_daily.delete(0, END)
+        self.flight_c_daily.delete(0, END)
 
-    Label(entry_frame, text=heading_text[0]).grid(row=0, column=0)
-    reg_num = Entry(entry_frame, width=10, textvariable=reg_n_len)
-    reg_n_len.trace("w", lambda *args: entry_limit(reg_n_len))
-    reg_num.grid(row=1, column=0)
-
-    Label(entry_frame, text=heading_text[1]).grid(row=0, column=1)
-    flight_h = Entry(entry_frame, validate="key", width=10, textvariable=fl_h_len)
-    fl_h_len.trace("w", lambda *args: entry_limit(fl_h_len))
-    flight_h.configure(validatecommand=(flight_h.register(val_int), '%P', '%d'))
-    flight_h.grid(row=1, column=1)
-
-    Label(entry_frame, text=heading_text[2]).grid(row=0, column=2)
-    flight_c = Entry(entry_frame, validate="key", width=10, textvariable=fl_c_len)
-    fl_c_len.trace("w", lambda *args: entry_limit(fl_c_len))
-    flight_c.configure(validatecommand=(flight_c.register(val_int), '%P', '%d'))
-    flight_c.grid(row=1, column=2)
-
-    Label(entry_frame, text=heading_text[3]).grid(row=0, column=3)
-    flight_h_daily = Entry(entry_frame, validate="key", width=10, textvariable=fl_h_d_len)
-    fl_h_d_len.trace("w", lambda *args: entry_limit(fl_h_d_len))
-    flight_h_daily.configure(validatecommand=(flight_h_daily.register(val_int), '%P', '%d'))
-    flight_h_daily.grid(row=1, column=3)
-
-    Label(entry_frame, text=heading_text[4]).grid(row=0, column=4)
-    flight_c_daily = Entry(entry_frame, validate="key", width=10, textvariable=fl_c_d_len)
-    fl_c_d_len.trace("w", lambda *args: entry_limit(fl_c_d_len))
-    flight_c_daily.configure(validatecommand=(flight_c_daily.register(val_int), '%P', '%d'))
-    flight_c_daily.grid(row=1, column=4)
-
-    save_btn = Button(entry_frame, text="Save", command=save_info, width=12)
-    save_btn.grid(row=1, column=5)
-
-    draw_btn = Button(entry_frame, text="Draw", command=draw_graph, width=12)
-    draw_btn.grid(row=1, column=6)
+        self.reg_num.insert(0, r_n_new)
+        self.flight_h.insert(0, f_h_new)
+        self.flight_c.insert(0, f_c_new)
+        self.flight_h_daily.insert(0, f_h_d_new)
+        self.flight_c_daily.insert(0, f_c_d_new)
 
 
 def intersection_point(graph):
@@ -275,14 +299,14 @@ class AcBox(LabelFrame):
 
     def treev_callback(self, _):
         treev_id = self.treev.selection()[0]
-        data = self.treev.item(treev_id)["values"]
-        print(data)
-
+        reg_num, flight_h, flight_c, flight_h_daily, flight_c_daily, _, _ = self.treev.item(treev_id)["values"]
+        input_box.insert_from_treev(reg_num, flight_h, flight_c, flight_h_daily, flight_c_daily)
+        input_box.draw_graph()
 
 
 graph_background_create()
 
-input_box()
+input_box = InputBox()
 
 ac_table()
 ac_box = AcBox()
