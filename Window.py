@@ -91,13 +91,17 @@ class InputBox(LabelFrame):
         flight_c_daily.grid(row=1, column=4)
         self.flight_c_daily = flight_c_daily
 
+        draw_btn = Button(self, text="Draw", command=self.draw_graph, width=12)
+        draw_btn.grid(row=1, column=5)
+        self.draw_btn = draw_btn
+
         save_btn = Button(self, text="Save", command=self.save_info, width=12)
-        save_btn.grid(row=1, column=5)
+        save_btn.grid(row=1, column=6)
         self.save_btn = save_btn
 
-        draw_btn = Button(self, text="Draw", command=self.draw_graph, width=12)
-        draw_btn.grid(row=1, column=6)
-        self.draw_btn = draw_btn
+        delete_btn = Button(self, text="Delete", command=self.delete_info, width=12)
+        delete_btn.grid(row=1, column=7)
+        self.delete_btn = delete_btn
 
     @staticmethod
     def entry_limit(sv):
@@ -171,6 +175,15 @@ class InputBox(LabelFrame):
             db_conn.commit()
             db_conn.close()
             ac_box.display_ac()
+
+    def delete_info(self):
+        ac_reg = str(self.reg_num.get())
+        db_conn = sqlite3.connect("AC data")
+        db_cursor = db_conn.cursor()
+        db_cursor.execute(f"DELETE FROM acData WHERE reg_num='{ac_reg}'")
+        db_conn.commit()
+        db_conn.close()
+        ac_box.display_ac()
 
     def draw_graph(self):
         if self.data_check("draw"):
