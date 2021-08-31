@@ -6,7 +6,9 @@ import sqlite3
 
 root = Tk()
 root.title("FLS Threshold Calculator")
-root.geometry("1267x692")
+root.geometry("1250x692")
+root.wm_maxsize(1250, 692)
+root.wm_minsize(1250, 692)
 
 frame = LabelFrame(root, padx=5, pady=5)
 frame.grid(row=0, column=0, padx=10, pady=10)
@@ -134,6 +136,7 @@ class InputBox(LabelFrame):
         if self.data_check("save"):
             ac_reg = str(self.reg_num.get())
             global input_info
+            global input_label
             input_info = [float(self.flight_h.get()),
                           float(self.flight_c.get()),
                           float(self.flight_h_daily.get()),
@@ -142,15 +145,29 @@ class InputBox(LabelFrame):
             f_c_th_56x75 = intersection_point("56x75")[1]
             db_conn = sqlite3.connect("AC data")
             db_cursor = db_conn.cursor()
-            db_cursor.execute(f"""INSERT INTO acData VALUES (
-                            '{ac_reg}',
-                            '{input_info[0]}',
-                            '{input_info[1]}',
-                            '{input_info[2]}',
-                            '{input_info[3]}',
-                            '{f_c_th_75x100}',
-                            '{f_c_th_56x75}'
-                )""")
+            if db_cursor.execute(f"SELECT reg_num FROM acData WHERE reg_num='{ac_reg}'").fetchone():
+                db_cursor.execute(f"""UPDATE acData SET 
+                    flight_h='{input_info[0]}', 
+                    flight_c='{input_info[1]}', 
+                    flight_h_daily='{input_info[2]}', 
+                    flight_c_daily='{input_info[3]}', 
+                    f_c_th_75x100='{f_c_th_75x100}', 
+                    f_c_th_56x75='{f_c_th_56x75}' 
+                    WHERE reg_num='{ac_reg}'
+                    """)
+                input_label.grid_forget()
+                input_label = Label(self, text="Updated", fg="red")
+                input_label.grid(row=0, column=5)
+            else:
+                db_cursor.execute(f"""INSERT INTO acData VALUES (
+                                '{ac_reg}',
+                                '{input_info[0]}',
+                                '{input_info[1]}',
+                                '{input_info[2]}',
+                                '{input_info[3]}',
+                                '{f_c_th_75x100}',
+                                '{f_c_th_56x75}'
+                    )""")
             db_conn.commit()
             db_conn.close()
             ac_box.display_ac()
@@ -256,8 +273,6 @@ def graph_switch():
         fls_active = 1
     else:
         fls_active = 2
-    print(root.winfo_width())  # TODO Delete This Line
-    print(root.winfo_height())  # TODO Delete This Line
     graph_background_create()
 
 
