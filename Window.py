@@ -1,7 +1,7 @@
-from tkinter import *
-from tkinter import ttk
+from tkinter import Label, LabelFrame, Tk, StringVar, Entry, Button, EW, END, NS, VERTICAL, ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
+from functools import partial
 import sqlite3
 
 root = Tk()
@@ -9,6 +9,7 @@ root.title("FLS Threshold Calculator")
 root.geometry("1250x692")
 root.wm_maxsize(1250, 692)
 root.wm_minsize(1250, 692)
+root.iconbitmap("icon48p.ico")
 
 frame = LabelFrame(root, padx=5, pady=5)
 frame.grid(row=0, column=0, padx=10, pady=10)
@@ -27,22 +28,6 @@ heading_text = ("Registration\nNumber",
                 "Flight Cycles\nDaily",
                 "Figure 1\nDue Date",
                 "Figure 2\nDue Date")
-
-
-def ac_table():
-    db_conn = sqlite3.connect("AC data")
-    db_cursor = db_conn.cursor()
-    db_cursor.execute("""CREATE TABLE IF NOT EXISTS acData (
-        reg_num TEXT PRIMARY KEY,
-        flight_h REAL,
-        flight_c REAL,
-        flight_h_daily REAL,
-        flight_c_daily REAL,
-        f_c_th_75x100 REAL,
-        f_c_th_56x75 REAL
-    )""")
-    db_conn.commit()
-    db_conn.close()
 
 
 class InputBox(LabelFrame):
@@ -149,29 +134,23 @@ class InputBox(LabelFrame):
             f_c_th_56x75 = intersection_point("56x75")[1]
             db_conn = sqlite3.connect("AC data")
             db_cursor = db_conn.cursor()
-            if db_cursor.execute(f"SELECT reg_num FROM acData WHERE reg_num='{ac_reg}'").fetchone():
-                db_cursor.execute(f"""UPDATE acData SET 
-                    flight_h='{input_info[0]}', 
-                    flight_c='{input_info[1]}', 
-                    flight_h_daily='{input_info[2]}', 
-                    flight_c_daily='{input_info[3]}', 
-                    f_c_th_75x100='{f_c_th_75x100}', 
-                    f_c_th_56x75='{f_c_th_56x75}' 
-                    WHERE reg_num='{ac_reg}'
-                    """)
+            if db_cursor.execute("SELECT reg_num FROM acData WHERE reg_num=?", (ac_reg,)).fetchone():
+                db_cursor.execute(
+                    """UPDATE acData SET 
+                    flight_h=?, 
+                    flight_c=?, 
+                    flight_h_daily=?, 
+                    flight_c_daily=?, 
+                    f_c_th_75x100=?, 
+                    f_c_th_56x75=? 
+                    WHERE reg_num=?""",
+                    (input_info[0], input_info[1], input_info[2], input_info[3], f_c_th_75x100, f_c_th_56x75, ac_reg))
                 input_label.grid_forget()
                 input_label = Label(self, text="Updated", fg="red")
                 input_label.grid(row=0, column=5)
             else:
-                db_cursor.execute(f"""INSERT INTO acData VALUES (
-                                '{ac_reg}',
-                                '{input_info[0]}',
-                                '{input_info[1]}',
-                                '{input_info[2]}',
-                                '{input_info[3]}',
-                                '{f_c_th_75x100}',
-                                '{f_c_th_56x75}'
-                    )""")
+                db_cursor.execute("INSERT INTO acData VALUES (?, ?, ?, ?, ?, ?, ? )", (
+                    ac_reg, input_info[0], input_info[1], input_info[2], input_info[3], f_c_th_75x100, f_c_th_56x75))
             db_conn.commit()
             db_conn.close()
             ac_box.display_ac()
@@ -180,7 +159,7 @@ class InputBox(LabelFrame):
         ac_reg = str(self.reg_num.get())
         db_conn = sqlite3.connect("AC data")
         db_cursor = db_conn.cursor()
-        db_cursor.execute(f"DELETE FROM acData WHERE reg_num='{ac_reg}'")
+        db_cursor.execute("DELETE FROM acData WHERE reg_num=?", (ac_reg, ))
         db_conn.commit()
         db_conn.close()
         ac_box.display_ac()
@@ -295,12 +274,15 @@ class AcBox(LabelFrame):
         super().__init__(master=root, padx=5, pady=5)
         self.grid(row=0, column=1, rowspan=2, padx=10, pady=10, sticky=NS)
         treev = ttk.Treeview(self, selectmode='browse', height=31)
-        treev_columns = ("1", "2", "3", "4", "5", "6", "7")
+        treev_columns = ("reg_num", "flight_h", "flight_c", "flight_h_daily", "flight_c_daily", "f_c_th_75x100", "f_c_th_56x75")
+        column_counter = 0
         treev["columns"] = treev_columns
         treev["show"] = "headings"
         for column in treev_columns:
+            display_order = partial(self.display_order, column)
             treev.column(column, width=75)
-            treev.heading(column, text=heading_text[int(column) - 1])
+            treev.heading(column, text=heading_text[column_counter], command=display_order)
+            column_counter += 1
         treev.grid(row=0, column=1)
 
         ac_box_scroll = ttk.Scrollbar(self, orient=VERTICAL, command=treev.yview)
@@ -308,13 +290,17 @@ class AcBox(LabelFrame):
         treev['yscrollcommand'] = ac_box_scroll.set
         treev.bind('<<TreeviewSelect>>', self.treev_callback)
         self.treev = treev
+        self.order_by = None
 
     def display_ac(self):
         for record in self.treev.get_children():
             self.treev.delete(record)
         db_conn = sqlite3.connect("AC data")
         db_cursor = db_conn.cursor()
-        db_cursor.execute("SELECT * FROM acData")
+        if self.order_by:
+            db_cursor.execute(f"SELECT * FROM acData ORDER BY {self.order_by}")
+        else:
+            db_cursor.execute("SELECT * FROM acData")
         ac_data_list = db_cursor.fetchall()
         db_conn.commit()
         db_conn.close()
@@ -324,6 +310,13 @@ class AcBox(LabelFrame):
             self.treev.insert("", "end", iid=l_var, values=(
                 reg_num, flight_h, flight_c, flight_h_daily, flight_c_daily, f_c_th_75x100, f_c_th_56x75))
             l_var += 1
+
+    def display_order(self, column):
+        if column != self.order_by:
+            self.order_by = column
+        else:
+            self.order_by = self.order_by + " DESC"
+        ac_box.display_ac()
 
     def treev_callback(self, _):
         treev_id = self.treev.selection()[0]
@@ -336,7 +329,6 @@ graph_background_create()
 
 input_box = InputBox()
 
-ac_table()
 ac_box = AcBox()
 ac_box.display_ac()
 
