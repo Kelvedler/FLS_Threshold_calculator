@@ -1,4 +1,4 @@
-from tkinter import Label, Tk, StringVar, Entry, EW, END, NS, VERTICAL, ttk
+from tkinter import Label, Tk, StringVar, Entry, EW, END, NS, W, VERTICAL, ttk, Text
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from functools import partial
@@ -19,8 +19,6 @@ frame.grid(row=0, column=0, padx=10)
 
 fls_active = 2
 input_info = []
-graph_active = ttk.Label(frame)
-graph_active.grid(row=0, column=0, padx=20, pady=20)
 
 input_label = ttk.Label()
 
@@ -29,8 +27,8 @@ heading_text = ("Registration",
                 "Flight Cycles",
                 "FH Daily",
                 "FC Daily",
-                "Fig.1 Due Date",
-                "Fig.2 Due Date")
+                "Fig.1 Threshold",
+                "Fig.2 Threshold")
 
 
 class InputBox(ttk.LabelFrame):
@@ -228,7 +226,8 @@ def intersection_point(graph):
 
 
 def graph_background_create():
-    global graph_active
+    graph_active = ttk.Label(frame)
+    graph_active.grid(row=0, column=0, padx=20, pady=20)
     fl_h_int = 0
     fl_c_int = 0
     if fls_active == 1:
@@ -251,15 +250,22 @@ def graph_background_create():
 
         graph_active = FigureCanvasTkAgg(graph_56x75, master=frame)
         graph_active.draw()
-    graph_active.get_tk_widget().grid(row=0, column=0, padx=22, columnspan=8)
+    graph_active.get_tk_widget().grid(row=0, column=0, padx=22, columnspan=48)
     display_threshold(fl_h_int, fl_c_int)
 
 
 def display_threshold(fh, fc):
-    fh = str(fh)
-    fc = str(fc)
-    threshold = ttk.Label(frame, text=fh + " FH " + fc + " FC", width=22)
-    threshold.grid(row=1, column=1, columnspan=2)
+    output = str(fh), str(fc)
+    labels = "FH", "FC"
+    column = 4
+    for i, l in zip(output, labels):
+        threshold = Text(frame, height=1, width=10)
+        threshold.insert("end", i)
+        threshold.grid(row=1, column=column, columnspan=8)
+        column += 8
+        label = ttk.Label(frame, text=l)
+        label.grid(row=1, column=column, sticky=W)
+        column += 1
 
 
 def graph_switch():
@@ -336,6 +342,6 @@ ac_box = AcBox()
 ac_box.display_ac()
 
 graph_switch_btn = ttk.Button(frame, text="Change Graph", width=12, command=graph_switch)
-graph_switch_btn.grid(row=1, column=4, columnspan=2)
+graph_switch_btn.grid(row=1, column=29, columnspan=15)
 
 root.mainloop()
