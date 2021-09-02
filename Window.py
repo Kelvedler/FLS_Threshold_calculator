@@ -6,34 +6,37 @@ import sqlite3
 
 root = Tk()
 root.title("FLS Threshold Calculator")
-root.geometry("1250x692")
-root.wm_maxsize(1250, 692)
-root.wm_minsize(1250, 692)
+root.geometry("1390x676")
+root.wm_maxsize(1390, 676)
+root.wm_minsize(1390, 676)
 root.iconbitmap("icon48p.ico")
 
-frame = LabelFrame(root, padx=5, pady=5)
-frame.grid(row=0, column=0, padx=10, pady=10)
+root.call("source", "azure.tcl")
+root.call("set_theme", "light")
+
+frame = ttk.LabelFrame(root, padding=(5, 5))
+frame.grid(row=0, column=0, padx=10)
 
 fls_active = 2
 input_info = []
-graph_active = Label(frame)
+graph_active = ttk.Label(frame)
 graph_active.grid(row=0, column=0, padx=20, pady=20)
 
-input_label = Label()
+input_label = ttk.Label()
 
-heading_text = ("Registration\nNumber",
-                "Flight Hours\n ",
-                "Flight Cycles\n ",
-                "Flight Hours\nDaily",
-                "Flight Cycles\nDaily",
-                "Figure 1\nDue Date",
-                "Figure 2\nDue Date")
+heading_text = ("Registration",
+                "Flight Hours",
+                "Flight Cycles",
+                "FH Daily",
+                "FC Daily",
+                "Fig.1 Due Date",
+                "Fig.2 Due Date")
 
 
-class InputBox(LabelFrame):
+class InputBox(ttk.LabelFrame):
 
     def __init__(self):
-        super().__init__(root, padx=5, pady=5)
+        super().__init__(root, padding=(5, 5))
         self.grid(row=1, column=0, padx=10, pady=10, sticky=EW)
 
         reg_n_len = StringVar()
@@ -42,50 +45,50 @@ class InputBox(LabelFrame):
         fl_h_d_len = StringVar()
         fl_c_d_len = StringVar()
 
-        Label(self, text=heading_text[0]).grid(row=0, column=0)
+        ttk.Label(self, text=heading_text[0]).grid(row=0, column=0, pady=2)
         reg_num = Entry(self, width=10, textvariable=reg_n_len)
         reg_n_len.trace("w", lambda *args: self.entry_limit(reg_n_len))
         reg_num.grid(row=1, column=0)
         self.reg_num = reg_num
 
-        Label(self, text=heading_text[1]).grid(row=0, column=1)
+        ttk.Label(self, text=heading_text[1]).grid(row=0, column=1, pady=2)
         flight_h = Entry(self, validate="key", width=10, textvariable=fl_h_len)
         fl_h_len.trace("w", lambda *args: self.entry_limit(fl_h_len))
         flight_h.configure(validatecommand=(flight_h.register(self.val_int), '%P', '%d'))
         flight_h.grid(row=1, column=1)
         self.flight_h = flight_h
 
-        Label(self, text=heading_text[2]).grid(row=0, column=2)
+        ttk.Label(self, text=heading_text[2]).grid(row=0, column=2, pady=2)
         flight_c = Entry(self, validate="key", width=10, textvariable=fl_c_len)
         fl_c_len.trace("w", lambda *args: self.entry_limit(fl_c_len))
         flight_c.configure(validatecommand=(flight_c.register(self.val_int), '%P', '%d'))
         flight_c.grid(row=1, column=2)
         self.flight_c = flight_c
 
-        Label(self, text=heading_text[3]).grid(row=0, column=3)
+        ttk.Label(self, text=heading_text[3]).grid(row=0, column=3, pady=2)
         flight_h_daily = Entry(self, validate="key", width=10, textvariable=fl_h_d_len)
         fl_h_d_len.trace("w", lambda *args: self.entry_limit(fl_h_d_len))
         flight_h_daily.configure(validatecommand=(flight_h_daily.register(self.val_int), '%P', '%d'))
         flight_h_daily.grid(row=1, column=3)
         self.flight_h_daily = flight_h_daily
 
-        Label(self, text=heading_text[4]).grid(row=0, column=4)
+        ttk.Label(self, text=heading_text[4]).grid(row=0, column=4, pady=2)
         flight_c_daily = Entry(self, validate="key", width=10, textvariable=fl_c_d_len)
         fl_c_d_len.trace("w", lambda *args: self.entry_limit(fl_c_d_len))
         flight_c_daily.configure(validatecommand=(flight_c_daily.register(self.val_int), '%P', '%d'))
         flight_c_daily.grid(row=1, column=4)
         self.flight_c_daily = flight_c_daily
 
-        draw_btn = Button(self, text="Draw", command=self.draw_graph, width=12)
-        draw_btn.grid(row=1, column=5)
+        draw_btn = ttk.Button(self, text="Draw", command=self.draw_graph, width=9)
+        draw_btn.grid(row=1, column=5, padx=3)
         self.draw_btn = draw_btn
 
-        save_btn = Button(self, text="Save", command=self.save_info, width=12)
+        save_btn = ttk.Button(self, text="Save", command=self.save_info, width=9)
         save_btn.grid(row=1, column=6)
         self.save_btn = save_btn
 
-        delete_btn = Button(self, text="Delete", command=self.delete_info, width=12)
-        delete_btn.grid(row=1, column=7)
+        delete_btn = ttk.Button(self, text="Delete", command=self.delete_info, width=9)
+        delete_btn.grid(row=1, column=7, padx=3)
         self.delete_btn = delete_btn
 
     @staticmethod
@@ -107,18 +110,18 @@ class InputBox(LabelFrame):
         if self.flight_h.get() == "" or \
                 self.flight_h_daily.get() == "" or \
                 self.flight_c_daily.get() == "":
-            data_status = "Please,\n fill all fields"
+            data_status = "Please, fill all fields"
             check = False
         else:
             if self.reg_num.get() == "" and button == "save":
-                data_status = "Please,\n fill all fields"
+                data_status = "Please, fill all fields"
                 check = False
             else:
                 if button == "save":
                     data_status = "Saved"
                 check = True
-        input_label = Label(self, text=data_status, fg="red")
-        input_label.grid(row=0, column=5)
+        input_label = ttk.Label(self, text=data_status, foreground="red")
+        input_label.grid(row=0, column=5, columnspan=3)
         return check
 
     def save_info(self):
@@ -147,7 +150,7 @@ class InputBox(LabelFrame):
                     (input_info[0], input_info[1], input_info[2], input_info[3], f_c_th_75x100, f_c_th_56x75, ac_reg))
                 input_label.grid_forget()
                 input_label = Label(self, text="Updated", fg="red")
-                input_label.grid(row=0, column=5)
+                input_label.grid(row=0, column=5, columnspan=3)
             else:
                 db_cursor.execute("INSERT INTO acData VALUES (?, ?, ?, ?, ?, ?, ? )", (
                     ac_reg, input_info[0], input_info[1], input_info[2], input_info[3], f_c_th_75x100, f_c_th_56x75))
@@ -248,15 +251,15 @@ def graph_background_create():
 
         graph_active = FigureCanvasTkAgg(graph_56x75, master=frame)
         graph_active.draw()
-    graph_active.get_tk_widget().grid(row=0, column=0, padx=20, pady=20, columnspan=4)
+    graph_active.get_tk_widget().grid(row=0, column=0, padx=22, columnspan=8)
     display_threshold(fl_h_int, fl_c_int)
 
 
 def display_threshold(fh, fc):
     fh = str(fh)
     fc = str(fc)
-    threshold = Label(frame, text=fh + " FH " + fc + " FC", width=18)
-    threshold.grid(row=1, column=3)
+    threshold = ttk.Label(frame, text=fh + " FH " + fc + " FC", width=22)
+    threshold.grid(row=1, column=1, columnspan=2)
 
 
 def graph_switch():
@@ -268,19 +271,19 @@ def graph_switch():
     graph_background_create()
 
 
-class AcBox(LabelFrame):
+class AcBox(ttk.Frame):
 
     def __init__(self):
-        super().__init__(master=root, padx=5, pady=5)
+        super().__init__(master=root, padding=(5, 5))
         self.grid(row=0, column=1, rowspan=2, padx=10, pady=10, sticky=NS)
-        treev = ttk.Treeview(self, selectmode='browse', height=31)
+        treev = ttk.Treeview(self, selectmode='browse', height=29)
         treev_columns = ("reg_num", "flight_h", "flight_c", "flight_h_daily", "flight_c_daily", "f_c_th_75x100", "f_c_th_56x75")
         column_counter = 0
         treev["columns"] = treev_columns
         treev["show"] = "headings"
         for column in treev_columns:
             display_order = partial(self.display_order, column)
-            treev.column(column, width=75)
+            treev.column(column, width=90, anchor='center')
             treev.heading(column, text=heading_text[column_counter], command=display_order)
             column_counter += 1
         treev.grid(row=0, column=1)
@@ -332,7 +335,7 @@ input_box = InputBox()
 ac_box = AcBox()
 ac_box.display_ac()
 
-graph_switch_btn = Button(frame, text="Change Graph", width=12, command=graph_switch)
-graph_switch_btn.grid(row=1, column=2)
+graph_switch_btn = ttk.Button(frame, text="Change Graph", width=12, command=graph_switch)
+graph_switch_btn.grid(row=1, column=4, columnspan=2)
 
 root.mainloop()
