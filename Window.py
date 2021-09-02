@@ -1,4 +1,4 @@
-from tkinter import Label, LabelFrame, Tk, StringVar, Entry, Button, EW, END, NS, VERTICAL, ttk
+from tkinter import Label, Tk, StringVar, Entry, EW, END, NS, VERTICAL, ttk
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from functools import partial
@@ -9,7 +9,7 @@ root.title("FLS Threshold Calculator")
 root.geometry("1390x676")
 root.wm_maxsize(1390, 676)
 root.wm_minsize(1390, 676)
-root.iconbitmap("icon48p.ico")
+root.iconbitmap("icon.ico")
 
 root.call("source", "azure.tcl")
 root.call("set_theme", "light")
