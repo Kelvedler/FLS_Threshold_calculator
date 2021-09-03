@@ -1,7 +1,6 @@
 # FLS Threshold calculator
 * Desktop app, designed to calculate and store threshold of flight length sensitive tasks.
 * Build with tkinter, matplotlib, sqlite3
-* Theme used https://github.com/rdbende/Azure-ttk-theme
 ![example](https://i.imgur.com/v6YouT7.png)
 # How to use
 * In order to calculate threshold user has to enter current Flight Hours, Flight Cycles and daily avarage Flight Hours, Flicht Cycles of an aircraft.
@@ -20,3 +19,6 @@ In order to switch between figure 1 and 2 press "Change Graph" button.
 
 * To view or edit stored data click on the row of interest.
 * To delete row press delete button after selecting the row or entering registration number.
+#Credits
+* Azure ttk theme by rdbende https://github.com/rdbende/Azure-ttk-theme
+* Icon by infinyteam https://icon-icons.com/icon/browser-website-web-developing-maintenance-mode/191195
