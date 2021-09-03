@@ -1,6 +1,7 @@
 # FLS Threshold calculator
 * Desktop app, designed to calculate and store threshold of flight length sensitive tasks.
 * Build with tkinter, matplotlib, sqlite3
+* Executive packaged with pyinstaller
 ![example](https://i.imgur.com/v6YouT7.png)
 # How to use
 * In order to calculate threshold user has to enter current Flight Hours, Flight Cycles and daily avarage Flight Hours, Flicht Cycles of an aircraft.
