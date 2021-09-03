@@ -19,6 +19,6 @@ In order to switch between figure 1 and 2 press "Change Graph" button.
 
 * To view or edit stored data click on the row of interest.
 * To delete row press delete button after selecting the row or entering registration number.
-#Credits
+# Credits
 * Azure ttk theme by rdbende https://github.com/rdbende/Azure-ttk-theme
 * Icon by infinyteam https://icon-icons.com/icon/browser-website-web-developing-maintenance-mode/191195
